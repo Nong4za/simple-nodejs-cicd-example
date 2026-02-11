@@ -48,7 +48,7 @@ spec:
             steps {
                 container('my-builder') {
                     withCredentials([
-                        string(credentialsId: 'vercel-token', variable: 'VERCEL_TOKEN')
+                        string(credentialsId: 'DevOps18-vercel-token', variable: 'VERCEL_TOKEN')
                     ]) {
                         sh '''
                         npm install -g vercel
