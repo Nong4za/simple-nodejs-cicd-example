@@ -1,13 +1,14 @@
 pipeline {
-  agent any
-
-  tools {
-    nodejs 'NodeJS-20'
+  agent {
+    docker {
+      image 'node:20-alpine'
+      args '-u root:root'
+    }
   }
 
   environment {
     VERCEL_TOKEN = credentials('DevOps18-vercel-token')
-    VERCEL_PROJECT_NAME = 'simple-nodejs'   // ต้อง lowercase เท่านั้น
+    VERCEL_PROJECT_NAME = 'simple-nodejs-cicd-example'   // lowercase เท่านั้น
   }
 
   stages {
