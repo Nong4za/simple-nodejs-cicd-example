@@ -2,19 +2,28 @@ pipeline {
   agent any
 
   tools {
-    nodejs 'NodeJS'
+    nodejs 'NodeJS-20'
   }
 
   environment {
     VERCEL_TOKEN = credentials('DevOps18-vercel-token')
+    VERCEL_PROJECT_NAME = 'simple-nodejs'   // ต้อง lowercase เท่านั้น
   }
 
   stages {
 
+    stage('Checkout') {
+      steps {
+        checkout scm
+      }
+    }
+
     stage('Check Node & npm') {
       steps {
-        sh 'node --version'
-        sh 'npm --version'
+        sh '''
+          node --version
+          npm --version
+        '''
       }
     }
 
@@ -30,6 +39,7 @@ pipeline {
           npx vercel deploy \
             --prod \
             --yes \
+            --name $VERCEL_PROJECT_NAME \
             --token $VERCEL_TOKEN
         '''
       }
@@ -37,8 +47,11 @@ pipeline {
   }
 
   post {
-    always {
-      echo 'Pipeline finished'
+    success {
+      echo '✅ Deploy to Vercel SUCCESS'
+    }
+    failure {
+      echo '❌ Deploy FAILED'
     }
   }
 }
