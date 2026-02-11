@@ -1,26 +1,69 @@
-stage('Deploy to Vercel') {
-    steps {
-        container('my-builder') {
-            withCredentials([
-                string(credentialsId: 'vercel-token', variable: 'VERCEL_TOKEN')
-            ]) {
-                sh '''
-                npm install -g vercel
-
-                vercel pull \
-                  --yes \
-                  --environment=production \
-                  --project=simple-nodejs-cicd \
-                  --scope=your-vercel-username \
-                  --token=$VERCEL_TOKEN
-
-                vercel deploy \
-                  --prod \
-                  --project=DevOps18-simple-nodejs \
-                  --scope=nong4za \
-                  --token=$VERCEL_TOKEN
-                '''
-            }
-        }
+pipeline {
+  agent {
+    kubernetes {
+      yaml '''
+apiVersion: v1
+kind: Pod
+spec:
+  containers:
+  - name: node
+    image: node:20-alpine
+    command:
+    - cat
+    tty: true
+'''
     }
+  }
+
+  environment {
+    VERCEL_PROJECT_NAME = 'DevOps18-simple-nodejs'
+    VERCEL_TOKEN = credentials('vercel-token')
+  }
+
+  stages {
+
+    stage('Check Node & NPM') {
+      steps {
+        container('node') {
+          sh 'node --version'
+          sh 'npm --version'
+        }
+      }
+    }
+
+    stage('Install Dependencies') {
+      steps {
+        container('node') {
+          sh 'npm ci'
+        }
+      }
+    }
+
+    stage('Build') {
+      steps {
+        container('node') {
+          sh 'npm run build'
+        }
+      }
+    }
+
+    stage('Deploy to Vercel') {
+      steps {
+        container('node') {
+          sh '''
+            npx vercel deploy \
+              --prod \
+              --confirm \
+              --token $VERCEL_TOKEN
+          '''
+        }
+      }
+    }
+  }
+
+  post {
+    always {
+      echo 'Pipeline finished'
+    }
+  }
 }
