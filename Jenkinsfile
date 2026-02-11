@@ -1,60 +1,35 @@
 pipeline {
-  agent {
-    kubernetes {
-      yaml '''
-apiVersion: v1
-kind: Pod
-spec:
-  containers:
-  - name: node
-    image: node:20-alpine
-    command:
-    - cat
-    tty: true
-'''
+    agent any
+
+    // 👉 เพิ่มตรงนี้เพื่อให้ Jenkins รู้จักคำสั่ง npm
+    tools {
+        nodejs 'NodeJS' 
     }
-  }
 
-  environment {
-    VERCEL_TOKEN = credentials('DevOps18-vercel-token')
-  }
+    environment {
+        // ชื่อกุญแจของน้อง (อันเดิมที่ถูกแล้ว)
+        VERCEL_TOKEN = credentials('DevOps18-vercel-token')
+    }
 
-  stages {
-
-    stage('Check Node & NPM') {
-      steps {
-        container('node') {
-          sh 'node --version'
-          sh 'npm --version'
+    stages {
+        stage('Test npm') {
+            steps {
+                sh 'npm --version'
+            }
         }
-      }
-    }
 
-    stage('Install Dependencies') {
-      steps {
-        container('node') {
-          sh 'npm ci'
+        stage('Build') {
+            steps {
+                sh 'npm install'
+                sh 'npm run build'
+            }
         }
-      }
-    }
 
-    stage('Deploy to Vercel') {
-      steps {
-        container('node') {
-          sh '''
-            npx vercel deploy \
-              --prod \
-              --confirm \
-              --token $VERCEL_TOKEN
-          '''
+        stage('Deploy') {
+            steps {
+                // สั่ง Deploy
+                sh 'npx vercel --prod --yes --force --token $VERCEL_TOKEN --name zin-exam-project'
+            }
         }
-      }
     }
-  }
-
-  post {
-    always {
-      echo 'Pipeline finished'
-    }
-  }
 }
