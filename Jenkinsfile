@@ -1,35 +1,40 @@
 pipeline {
-    agent any
+  agent any
 
-    // 👉 เพิ่มตรงนี้เพื่อให้ Jenkins รู้จักคำสั่ง npm
-    tools {
-        nodejs 'NodeJS' 
+  environment {
+    VERCEL_TOKEN = credentials('DevOps18-vercel-token')
+  }
+
+  stages {
+
+    stage('Check npm') {
+      steps {
+        sh 'node --version'
+        sh 'npm --version'
+      }
     }
 
-    environment {
-        // ชื่อกุญแจของน้อง (อันเดิมที่ถูกแล้ว)
-        VERCEL_TOKEN = credentials('DevOps18-vercel-token')
+    stage('Install Dependencies') {
+      steps {
+        sh 'npm install'
+      }
     }
 
-    stages {
-        stage('Test npm') {
-            steps {
-                sh 'npm --version'
-            }
-        }
-
-        stage('Build') {
-            steps {
-                sh 'npm install'
-                sh 'npm run build'
-            }
-        }
-
-        stage('Deploy') {
-            steps {
-                // สั่ง Deploy
-                sh 'npx vercel --prod --yes --force --token $VERCEL_TOKEN --name zin-exam-project'
-            }
-        }
+    stage('Deploy to Vercel') {
+      steps {
+        sh '''
+          npx vercel deploy \
+            --prod \
+            --yes \
+            --token $VERCEL_TOKEN
+        '''
+      }
     }
+  }
+
+  post {
+    always {
+      echo 'Pipeline finished'
+    }
+  }
 }
