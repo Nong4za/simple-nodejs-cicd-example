@@ -1,5 +1,10 @@
 pipeline {
-  agent any
+  agent {
+    docker {
+      image 'node:20-alpine'
+      args '-u root'
+    }
+  }
 
   environment {
     VERCEL_TOKEN = credentials('DevOps18-vercel-token')
@@ -7,7 +12,7 @@ pipeline {
 
   stages {
 
-    stage('Check npm') {
+    stage('Check Node & npm') {
       steps {
         sh 'node --version'
         sh 'npm --version'
