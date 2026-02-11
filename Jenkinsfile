@@ -1,14 +1,14 @@
 pipeline {
-  agent {
-    docker {
-      image 'node:20-alpine'
-      args '-u root:root'
-    }
-  }
+  agent any  // กลับมาใช้ Agent ของ Jenkins โดยตรง (เพราะ Docker พัง)
 
   environment {
     VERCEL_TOKEN = credentials('DevOps18-vercel-token')
-    VERCEL_PROJECT_NAME = 'simple-nodejs-cicd-example'   // lowercase เท่านั้น
+    VERCEL_PROJECT_NAME = 'simple-nodejs-cicd-example'
+  }
+
+  // กำหนด Tool ที่จะใช้ (ต้องตรงกับชื่อที่ตั้งใน Manage Jenkins -> Tools)
+  tools {
+    nodejs 'nodejs' // **สำคัญ: เช็คชื่อนี้ใน Jenkins ของคุณ (อาจชื่อ 'node', 'nodejs20' หรืออื่นๆ)**
   }
 
   stages {
@@ -36,6 +36,7 @@ pipeline {
 
     stage('Deploy to Vercel') {
       steps {
+        // เพิ่ม --name เพื่อแก้ปัญหาชื่อ Project ตัวพิมพ์ใหญ่
         sh '''
           npx vercel deploy \
             --prod \
