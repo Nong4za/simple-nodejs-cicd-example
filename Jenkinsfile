@@ -1,59 +1,57 @@
 pipeline {
-  agent any  // กลับมาใช้ Agent ของ Jenkins โดยตรง (เพราะ Docker พัง)
+    agent any
 
-  environment {
-    VERCEL_TOKEN = credentials('DevOps18-vercel-token')
-    VERCEL_PROJECT_NAME = 'simple-nodejs-cicd-example'
-  }
-
-  // กำหนด Tool ที่จะใช้ (ต้องตรงกับชื่อที่ตั้งใน Manage Jenkins -> Tools)
-  tools {
-    nodejs 'nodejs' // **สำคัญ: เช็คชื่อนี้ใน Jenkins ของคุณ (อาจชื่อ 'node', 'nodejs20' หรืออื่นๆ)**
-  }
-
-  stages {
-
-    stage('Checkout') {
-      steps {
-        checkout scm
-      }
+    environment {
+        VERCEL_TOKEN = credentials('DevOps18-vercel-token')
+        VERCEL_PROJECT_NAME = 'simple-nodejs-cicd-example'
     }
 
-    stage('Check Node & npm') {
-      steps {
-        sh '''
-          node --version
-          npm --version
-        '''
-      }
+    tools {
+        // แก้ตรงนี้ครับ! จาก 'nodejs' เป็น 'NodeJS' ตามที่ Error แนะนำ
+        nodejs 'NodeJS' 
     }
 
-    stage('Install Dependencies') {
-      steps {
-        sh 'npm install'
-      }
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Check Node & npm') {
+            steps {
+                sh '''
+                    node --version
+                    npm --version
+                '''
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                sh 'npm install'
+            }
+        }
+
+        stage('Deploy to Vercel') {
+            steps {
+                sh '''
+                    npx vercel deploy \
+                        --prod \
+                        --yes \
+                        --name $VERCEL_PROJECT_NAME \
+                        --token $VERCEL_TOKEN
+                '''
+            }
+        }
     }
 
-    stage('Deploy to Vercel') {
-      steps {
-        // เพิ่ม --name เพื่อแก้ปัญหาชื่อ Project ตัวพิมพ์ใหญ่
-        sh '''
-          npx vercel deploy \
-            --prod \
-            --yes \
-            --name $VERCEL_PROJECT_NAME \
-            --token $VERCEL_TOKEN
-        '''
-      }
+    post {
+        success {
+            echo '✅ Deploy to Vercel SUCCESS'
+        }
+        failure {
+            echo '❌ Deploy FAILED'
+        }
     }
-  }
-
-  post {
-    success {
-      echo '✅ Deploy to Vercel SUCCESS'
-    }
-    failure {
-      echo '❌ Deploy FAILED'
-    }
-  }
 }
