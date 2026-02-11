@@ -16,7 +16,6 @@ spec:
   }
 
   environment {
-    VERCEL_PROJECT_NAME = 'DevOps18-simple-nodejs'
     VERCEL_TOKEN = credentials('vercel-token')
   }
 
@@ -35,14 +34,6 @@ spec:
       steps {
         container('node') {
           sh 'npm ci'
-        }
-      }
-    }
-
-    stage('Build') {
-      steps {
-        container('node') {
-          sh 'npm run build'
         }
       }
     }
