@@ -16,7 +16,7 @@ spec:
   }
 
   environment {
-    VERCEL_TOKEN = credentials('vercel-token')
+    VERCEL_TOKEN = credentials('DevOps18-vercel-token')
   }
 
   stages {
